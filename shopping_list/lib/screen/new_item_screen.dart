@@ -19,6 +19,7 @@ class _NewItemState extends State<NewItem> {
   var _enteredName = '';
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
+  var isSending = false;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
@@ -39,7 +40,9 @@ class _NewItemState extends State<NewItem> {
           },
         ),
       );
-
+      setState(() {
+        isSending = true;
+      });
       if (!context.mounted) return;
       Navigator.of(context).pop();
     }
@@ -144,8 +147,14 @@ class _NewItemState extends State<NewItem> {
                   ),
                   Spacer(),
                   ElevatedButton(
-                    onPressed: _saveItem,
-                    child: const Text('Save'),
+                    onPressed: isSending ? null : _saveItem,
+                    child: isSending
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(),
+                          )
+                        : Text('Save'),
                   )
                 ],
               ),

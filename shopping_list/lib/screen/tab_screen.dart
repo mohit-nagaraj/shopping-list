@@ -17,6 +17,7 @@ class TabScreen extends StatefulWidget {
 
 class _TabScreenState extends State<TabScreen> {
   List<GroceryItem> items = [];
+  var isLoading = true;
 
   @override
   void initState() {
@@ -29,7 +30,16 @@ class _TabScreenState extends State<TabScreen> {
         'test2-bb3f7-default-rtdb.europe-west1.firebasedatabase.app',
         'shopping-list.json');
     final response = await http.get(url);
+
+    if (response.body == 'null') {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
     final Map<String, dynamic> loadedData = json.decode(response.body);
+
     final List<GroceryItem> tempList = [];
     for (final item in loadedData.entries) {
       final cat = categories.entries
@@ -47,6 +57,7 @@ class _TabScreenState extends State<TabScreen> {
 
     setState(() {
       items = tempList;
+      isLoading = false;
     });
   }
 
@@ -57,6 +68,10 @@ class _TabScreenState extends State<TabScreen> {
   }
 
   void removeItem(GroceryItem g) {
+    final url = Uri.https(
+        'test2-bb3f7-default-rtdb.europe-west1.firebasedatabase.app',
+        'shopping-list/${g.id}.json');
+    http.delete(url);
     setState(() {
       items.remove(g);
     });
@@ -76,15 +91,19 @@ class _TabScreenState extends State<TabScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 8.0),
-        child: (items.length == 0)
+        child: (isLoading)
             ? Center(
-                child: Text(
-                'Start adding some items',
-                style: TextStyle(fontSize: 16),
-              ))
-            : ListView(
-                children: [...items.map((e) => DisplayItem(e, removeItem))],
-              ),
+                child: CircularProgressIndicator(),
+              )
+            : (items.length == 0)
+                ? Center(
+                    child: Text(
+                    'Start adding some items',
+                    style: TextStyle(fontSize: 16),
+                  ))
+                : ListView(
+                    children: [...items.map((e) => DisplayItem(e, removeItem))],
+                  ),
       ),
     );
   }
